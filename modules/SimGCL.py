@@ -8,7 +8,6 @@ import torch.nn as nn
 from time import time
 import torch.nn.functional as F
 
-# nohup python main.py --dataset gowalla --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --pool mean --ns mixgcf --n_negs 1 --K 1 --tau 0.2 --lamb 0.5 --eps 0.1 &
 
 class GraphConv(nn.Module):
     """
@@ -174,30 +173,6 @@ class SimGCL(nn.Module):
         for emb in args:
             emb_loss += torch.norm(emb, p=2)
         return emb_loss * reg
-
-    # def create_bpr_loss(self, user_gcn_emb, pos_gcn_embs, neg_gcn_embs):
-    #     # user_gcn_emb: [batch_size, n_hops+1, channel]
-    #     # pos_gcn_embs: [batch_size, n_hops+1, channel]
-    #     # neg_gcn_embs: [batch_size, K, n_hops+1, channel]
-
-    #     batch_size = user_gcn_emb.shape[0]
-
-    #     u_e = self.pooling(user_gcn_emb)
-    #     pos_e = self.pooling(pos_gcn_embs)
-    #     neg_e = self.pooling(neg_gcn_embs.view(-1, neg_gcn_embs.shape[2], neg_gcn_embs.shape[3])).view(batch_size, self.K, -1)
-
-    #     pos_scores = torch.sum(torch.mul(u_e, pos_e), axis=1)
-    #     neg_scores = torch.sum(torch.mul(u_e.unsqueeze(dim=1), neg_e), axis=-1)  # [batch_size, K]
-
-    #     mf_loss = torch.mean(torch.log(1+torch.exp(neg_scores - pos_scores.unsqueeze(dim=1)).sum(dim=1)))
-
-    #     # cul regularizer
-    #     regularize = (torch.norm(user_gcn_emb[:, 0, :]) ** 2
-    #                    + torch.norm(pos_gcn_embs[:, 0, :]) ** 2
-    #                    + torch.norm(neg_gcn_embs[:, :, 0, :]) ** 2) / 2  # take hop=0
-    #     emb_loss = self.decay * regularize / batch_size
-
-    #     return mf_loss + emb_loss, mf_loss, emb_loss
     
     def cal_cl_loss(self, idx):
         u_idx = torch.unique(torch.LongTensor(idx[0].cpu()).type(torch.long)).to(self.device)
@@ -209,15 +184,6 @@ class SimGCL(nn.Module):
         user_cl_loss = self.InfoNCE(user_view1[u_idx], user_view2[u_idx], self.temp)
         item_cl_loss = self.InfoNCE(item_view1[i_idx], item_view2[i_idx], self.temp)
         return user_cl_loss + item_cl_loss
-
-    # def cal_cl_loss(self, idx):
-    #     u_idx = torch.unique(torch.LongTensor(idx[0].cpu()).type(torch.long)).to(self.device)
-    #     i_idx = torch.unique(torch.LongTensor(idx[1].cpu()).type(torch.long)).to(self.device)
-    #     user_view1, item_view1 = self.generate()
-    #     user_view2, item_view2 = self.generate()
-    #     user_cl_loss = self.InfoNCE(user_view1[u_idx], user_view2[u_idx], self.temp)
-    #     item_cl_loss = self.InfoNCE(item_view1[i_idx], item_view2[i_idx], self.temp)
-    #     return user_cl_loss + item_cl_loss
 
     def InfoNCE(self, view1, view2, temperature, b_cos=True):
         if b_cos:

@@ -9,7 +9,6 @@ from time import time
 import torch.nn.functional as F
 import numpy as np
 
-# nohup python main.py --dataset gowalla --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --pool mean --ns mixgcf --n_negs 1 --K 1 --tau 0.2 --lamb 0.5 --eps 0.1 &
 
 class GraphConv(nn.Module):
     """

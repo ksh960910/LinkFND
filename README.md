@@ -1,29 +1,29 @@
-# MixGCF: An Improved Training Method for Graph Neural Network-based Recommender Systems
+# LinkFND : Simple Framework for False Negative Detection in Recommendation Tasks With Graph Contrastive Learning
 
 This is our PyTorch implementation for the paper:
 
-> Tinglin Huang, Yuxiao Dong, Ming Ding, Zhen Yang, Wenzheng Feng, Xinyu Wang, Jie Tang (2021). MixGCF: An Improved Training Method for Graph Neural Network-based Recommender Systems.  [Paper link](http://keg.cs.tsinghua.edu.cn/jietang/publications/KDD21-Huang-et-al-MixGCF.pdf). In KDD'2021, Virtual Event, Singapore, August 14-18, 2021.
+> Kim, Sanghun, and Hyeryung Jang. "LinkFND: Simple Framework for False Negative Detection in Recommendation Tasks With Graph Contrastive Learning." IEEE Access (2023).  [Paper link](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=10368024)
 
-Author: Mr. Tinglin Huang (tinglin.huang at zju.edu.cn)
+Author: Mr. Sanghun Kim
 
 ## Citation 
 
 If you want to use our codes in your research, please cite:
 ​    
 ```
-@inproceedings{MixGCF2021,
-  author    = {Tinglin Huang and
-               Yuxiao Dong and
-               Ming Ding and
-               Zhen Yang and
-               Wenzheng Feng and
-               Xinyu Wang and
-               Jie Tang},
-  title     = {MixGCF: An Improved Training Method for Graph Neural Network-based Recommender Systems},
-  booktitle = {{KDD}},
-  year      = {2021}
+@article{kim2023linkfnd,
+  title={LinkFND: Simple Framework for False Negative Detection in Recommendation Tasks With Graph Contrastive Learning},
+  author={Kim, Sanghun and Jang, Hyeryung},
+  journal={IEEE Access},
+  year={2023},
+  publisher={IEEE}
 }
 ```
+
+## Our Proposed Overall Architecture
+<p align="center">
+ <img src = "./Overall Architecture.png">
+</p>
 
 ## Environment Requirement
 
@@ -39,75 +39,58 @@ The code has been tested running under Python 3.7.6. The required packages are a
 
 The instruction of commands has been clearly stated in the codes (see the parser function in utils/parser.py). Important argument:
 
-- `K`
-  - It specifies the number of negative instances in K-pair loss. Note that when K=1 (by default), the K-pair loss will degenerate into the BPR pairwise loss.
-- `n_negs`
-  - It specifies the size of negative candidate set when using MixGCF.
-- `ns`
-  - It indicates the type of negative sample method. Here we provide two options: rns and mixgcf.
+- `gnn`
+  - It specifies the graph based recommender models when training.
+- `fnk`
+  - It specifies the number of false negatives to be selected by top-k strategy
+- `threshold`
+  - It specifies the value of threshold to be selected by threshold strategy
+- 
 
-#### LightGCN
 
-##### Random sample(rns)
-
-```
-python main.py --dataset ali --gnn lightgcn --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --agg mean --ns rns --K 1 --n_negs 1
-
-python main.py --dataset yelp2018 --gnn lightgcn --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --pool mean --ns rns --K 1 --n_negs 1
-
-python main.py --dataset amazon --gnn lightgcn --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --agg mean --ns rns --K 1 --n_negs 1
-
-python main.py --dataset movielens --gnn lightgcn --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --pool mean --ns rns --K 1 --n_negs 1
-```
-
-#####  MixGCF
+#### SimGCL without LinkFND
 
 ```
-python main.py --dataset ali --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --agg mean --ns mixgcf --K 1 --n_negs 32
+python main.py --dataset gowalla --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 -
 
-python main.py --dataset yelp2018 --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --agg mean --ns mixgcf --K 1 --n_negs 64
+python main.py --dataset amazon-book --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3
 
-python main.py --dataset amazon --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --agg mean --ns mixgcf --K 1 --n_negs 16
+python main.py --dataset amazon --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3
 
-python main.py --dataset movielens --gnn lightgcn --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --pool mean --ns mixgcf --K 1 --n_negs 16
+python main.py --dataset yelp2018 --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3
+
+python main.py --dataset ali --gnn sgcl --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3
 ```
 
-#### NGCF
 
-##### Random sample(rns)
-
-```
-python main.py --dataset ali --gnn ngcf --dim 64 --lr 0.0001 --batch_size 1024 --gpu_id 0 --context_hops 3 --agg concat --ns rns --K 1 --n_negs 1
-
-python main.py --dataset yelp2018 --gnn ngcf --dim 64 --lr 0.0001 --batch_size 1024 --gpu_id 0 --context_hops 3 --agg concat --ns rns --K 1 --n_negs 1
-
-python main.py --dataset amazon --gnn ngcf --dim 64 --lr 0.0001 --batch_size 1024 --gpu_id 0 --context_hops 3 --agg concat --ns rns --K 1 --n_negs 1
-
-python main.py --dataset movielens --gnn ngcf --dim 64 --lr 0.001 --batch_size 1024 --gpu_id 0 --context_hops 3 --pool concat --ns rns --K 1 --n_negs 1
-```
-
-##### MixGCF
+#### SimGCL with LinkFND
 
 ```
-python main.py --dataset ali --gnn ngcf --dim 64 --lr 0.0001 --batch_size 1024 --gpu_id 0 --context_hops 3 --agg concat --ns mixgcf --K 1 --n_negs 64
+python main.py --dataset gowalla --gnn linkfnd --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --tau 0.2 --lamb 0.2 --eps 0.15
 
-python main.py --dataset yelp2018 --gnn ngcf --dim 64 --lr 0.0001 --batch_size 1024 --gpu_id 0 --context_hops 3 --agg concat --ns mixgcf --K 1 --n_negs 64
+python main.py --dataset amazon-book --gnn linkfnd --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --tau 0.2 --lamb 1 --eps 0.2
 
-python main.py --dataset amazon --gnn ngcf --dim 64 --lr 0.0001 --batch_size 1024 --gpu_id 0 --context_hops 3 --agg concat --ns mixgcf --K 1 --n_negs 64
+python main.py --dataset amazon --gnn linkfnd --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --tau 0.2 --lamb 0.1 --eps 0.15
 
-python main.py --dataset movielens --gnn ngcf --dim 64 --lr 0.001 --batch_size 1024 --gpu_id 0 --context_hops 3 --pool concat --ns mixgcf --K 1 --n_negs 64
+python main.py --dataset yelp2018 --gnn linkfnd --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --tau 0.2 --lamb 0.2 --eps 0.15
+
+python main.py --dataset ali --gnn linkfnd --dim 64 --lr 0.001 --batch_size 2048 --gpu_id 0 --context_hops 3 --tau 0.2 --lamb 0.1 --eps 0.15
 ```
-
-The [training log](https://github.com/huangtinglin/MixGCF/tree/main/training_log) is also provided. The results fluctuate slightly under different running environment.
 
 ## Dataset
 
-We use three processed datasets: Alibaba, Yelp2018, and Amazon.
+We use three processed datasets: Alibaba, Yelp2018, Amazon, Gowalla, and Amazon-Book.
 
-|               | Alibaba | Yelp2018  | Amazon    |
-| ------------- | ------- | --------- | --------- |
-| #Users        | 106,042 | 31,668    | 192,403   |
-| #Items        | 53,591  | 38,048    | 63,001    |
-| #Interactions | 907,407 | 1,561,406 | 1,689,188 |
-| Density       | 0.00016 | 0.00130   | 0.00014   |
+|               | Alibaba | Yelp2018  | Amazon    | Gowalla   | Amazon-Book |
+| ------------- | ------- | --------- | --------- | --------- | ----------- |
+| #Users        | 106,042 | 31,668    | 192,403   | 29,858    | 52,643      |
+| #Items        | 53,591  | 38,048    | 63,001    | 40,981    | 91,599      |
+| #Interactions | 907,407 | 1,561,406 | 1,689,188 | 1,027,370 | 2,984,108   |
+| Density       | 0.00016 | 0.00130   | 0.00014   | 0.00084   | 0.00062     |
+
+## Overall Performance Comparison
+
+<p align="center">
+ <img src = "./Performance Comparison.png">
+</p>
 
